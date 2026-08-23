@@ -1,0 +1,16 @@
+# Ambiente virtual
+.venv/
+
+# Cache do Python e dos testes
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Configuracoes locais e segredos
+.env
+.env.*
+!.env.example
+
+# Arquivos gerados por ferramentas
+.pytest_cache/
+.streamlit/secrets.toml

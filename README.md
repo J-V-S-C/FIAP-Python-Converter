@@ -2,6 +2,18 @@
 
 Conversor de arquivos entre CSV, JSON e TXT, com API FastAPI e interface Streamlit.
 
+---
+
+## Integrantes
+
+• RM 573865 – João Victor Sant'Ana Cortabitart 
+
+• RM 574025 – João Victor Barbon Naymayer 
+
+• RM 573678 – João Vitor Dutra de Freitas 
+
+---
+
 ## Instalação
 
 No PowerShell, dentro da pasta do projeto:
@@ -11,6 +23,8 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 ```
+
+---
 
 ## Execução
 
