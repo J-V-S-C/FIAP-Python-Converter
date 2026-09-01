@@ -1,3 +1,10 @@
+Receber como entrada de dados um dict Python e ser capaz de converter esse objeto para JSON 
+• Receber como entrada de dados um dict Python e ser capaz de converter esse 
+objeto para csv
+• Receber como entrada arquivos json e ser capaz de converter em csv (e viceversa)
+• Receber como entrada arquivos em formato xlsx e ser capaz de converter em csv
+(e vice-versa)
+
 # File Converter
 
 Conversor de arquivos entre CSV, JSON e TXT, com API FastAPI e interface Streamlit.
@@ -44,8 +51,3 @@ streamlit run streamlit_app.py
 
 A interface estará disponível em `http://localhost:8501` e a API em `http://127.0.0.1:8000`.
 
-## Testes
-
-```powershell
-python -m pytest
-```
