@@ -1,53 +1,149 @@
-Receber como entrada de dados um dict Python e ser capaz de converter esse objeto para JSON 
-• Receber como entrada de dados um dict Python e ser capaz de converter esse 
-objeto para csv
-• Receber como entrada arquivos json e ser capaz de converter em csv (e viceversa)
-• Receber como entrada arquivos em formato xlsx e ser capaz de converter em csv
-(e vice-versa)
+FIAP Python Converter
 
-# File Converter
+Aplicação desenvolvida em Python para conversão de dados entre os formatos JSON, CSV e XLSX, utilizando uma interface simples com Streamlit.
 
-Conversor de arquivos entre CSV, JSON e TXT, com API FastAPI e interface Streamlit.
+Projeto desenvolvido para o Checkpoint 4 – Computational Thinking With Python.
 
----
+Funcionalidades
 
-## Integrantes
+A aplicação realiza as seguintes conversões:
 
-• RM 573865 – João Victor Sant'Ana Cortabitart 
+Dict → JSON
+Dict → CSV
+JSON → CSV
+CSV → JSON
+XLSX → CSV
+CSV → XLSX
 
-• RM 574025 – João Victor Barbon Naymayer 
+Para conversões com dict, os dados são informados como texto no formato JSON.
 
-• RM 573678 – João Vitor Dutra de Freitas 
+Para conversões de arquivos, o usuário realiza o upload diretamente pela interface.
 
----
+Lógica da solução
 
-## Instalação
+A aplicação separa a interface da lógica de conversão.
 
-No PowerShell, dentro da pasta do projeto:
+O streamlit_app.py é responsável pela interação com o usuário, enquanto o converters.py concentra a lógica de processamento e conversão dos dados.
 
-```powershell
+Para arquivos, o fluxo é:
+
+Arquivo
+   ↓
+Parser
+   ↓
+DataFrame
+   ↓
+Exporter
+   ↓
+Arquivo convertido
+
+
+O DataFrame do Pandas é utilizado como estrutura intermediária, permitindo reutilizar a mesma lógica para diferentes formatos.
+
+Para dict, o fluxo é:
+
+Texto
+   ↓
+dict Python
+   ↓
+Conversão
+   ↓
+JSON ou CSV
+
+
+Isso evita a duplicação de código e facilita a adição de novos formatos no futuro.
+
+Para os dicts, a aplicação recebe o conteúdo como texto e utiliza json.loads() para transformá-lo em um dict Python antes da conversão.
+
+Na conversão para JSON, o dict é exportado diretamente, preservando sua estrutura original.
+
+Na conversão para CSV, o dict é transformado em um DataFrame antes da exportação.
+
+Tratamento de erros
+
+A aplicação possui tratamento de erros para situações como:
+
+Arquivos vazios;
+JSON inválido;
+CSV inválido;
+XLSX inválido;
+Codificação de arquivo incompatível;
+Formato de entrada não suportado;
+Formato de saída não suportado;
+Entrada que não representa um dict.
+
+Os erros são tratados com exceções e apresentados ao usuário através da interface.
+
+Tecnologias
+Python
+Streamlit
+Pandas
+OpenPyXL
+
+O Pandas é utilizado para leitura, manipulação e transformação dos dados através de DataFrame.
+
+O OpenPyXL é utilizado para trabalhar com arquivos .xlsx.
+
+Estrutura
+FIAP-Python-Converter/
+├── streamlit_app.py
+├── converters.py
+├── requirements.txt
+├── README.md
+└── tests/
+    └── test_converters.py
+
+
+streamlit_app.py
+
+Responsável pela interface, entrada de dados, upload dos arquivos e download dos resultados.
+
+converters.py
+
+Contém a lógica de leitura, conversão e exportação dos dados.
+
+tests/
+
+Contém os testes das funções de conversão.
+
+requirements.txt
+
+Contém as dependências necessárias para executar o projeto.
+
+Como executar
+
+Clone o repositório:
+
+git clone URL_DO_REPOSITORIO
+cd FIAP-Python-Converter
+
+
+Crie o ambiente virtual:
+
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
 
----
 
-## Execução
+Linux/macOS:
 
-Abra dois terminais com o ambiente virtual ativado.
+source .venv/bin/activate
 
-Terminal da API:
 
-```powershell
-uvicorn main:app --reload
-```
+Windows:
 
-Terminal da interface:
+.venv\Scripts\activate
 
-```powershell
+
+Instale as dependências:
+
+pip install -r requirements.txt
+
+
+Execute a aplicação:
+
 streamlit run streamlit_app.py
-```
 
-A interface estará disponível em `http://localhost:8501` e a API em `http://127.0.0.1:8000`.
-
+Pip
+Integrantes
+João Cortabitart
+João Barbon
+João Freitas
