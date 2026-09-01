@@ -1,203 +1,62 @@
 import streamlit as st
-import requests
 
+st.set_page_config(page_title="Conversor de arquivos", layout="centered")
 
+st.title("Conversor de Arquivos")
+st.caption("Converta seus dados e arquivos entre diferentes formatos.")
 
-# Configuração da pagina
+st.divider()
 
+st.subheader("Escolha uma conversão")
 
-st.set_page_config(
-    page_title="File Converter",
-    page_icon="🔄",
-    layout="centered"
+operacao = st.selectbox(
+    "Tipo de conversão",
+    [
+        "Dict → JSON",
+        "Dict → CSV",
+        "JSON → CSV",
+        "CSV → JSON",
+        "XLSX → CSV",
+        "CSV → XLSX",
+    ],
 )
 
+st.divider()
 
+if operacao == "Dict → JSON":
+    st.subheader("Python Dict → JSON")
 
-# CSS gambiarra!
+    dados = st.text_area(
+        "Digite seu dict", placeholder='{"nome": "João", "idade": 20}', height=200
+    )
 
+elif operacao == "Dict → CSV":
+    st.subheader("Python Dict → CSV")
 
-st.markdown("""
-<style>
+    dados = st.text_area(
+        "Digite seu dict", placeholder='{"nome": "João", "idade": 20}', height=200
+    )
 
-    .main {
-        max-width: 900px;
-        margin: auto;
-    }
+elif operacao == "JSON → CSV":
+    st.subheader("JSON → CSV")
 
-    .title {
-        text-align: center;
-        font-size: 42px;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
+    arquivo = st.file_uploader("Envie seu arquivo JSON", type=["json"])
 
-    .subtitle {
-        text-align: center;
-        color: #888;
-        font-size: 18px;
-        margin-bottom: 40px;
-    }
+elif operacao == "CSV → JSON":
+    st.subheader("CSV → JSON")
 
-    .section-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin-top: 20px;
-    }
+    arquivo = st.file_uploader("Envie seu arquivo CSV", type=["csv"])
 
-</style>
-""", unsafe_allow_html=True)
+elif operacao == "XLSX → CSV":
+    st.subheader("XLSX → CSV")
 
+    arquivo = st.file_uploader("Envie seu arquivo XLSX", type=["xlsx"])
 
+elif operacao == "CSV → XLSX":
+    st.subheader("CSV → XLSX")
 
-# Titulo
+    arquivo = st.file_uploader("Envie seu arquivo CSV", type=["csv"])
 
-st.markdown(
-    '<div class="title">🔄 File Converter</div>',
-    unsafe_allow_html=True
-)
+st.divider()
 
-st.markdown(
-    '<div class="subtitle">'
-    'Converta seus arquivos entre JSON, CSV, TXT e XLSX'
-    '</div>',
-    unsafe_allow_html=True
-)
-
-
-
-# UPLOAD
-
-st.markdown(
-    '<div class="section-title">📁 Arquivo:</div>',
-    unsafe_allow_html=True
-)
-
-arquivo = st.file_uploader(
-    "Selecione o arquivo que deseja converter",
-    type=["json", "csv", "txt", "xlsx"]
-)
-
-
-
-# Formato de saída
-
-st.markdown(
-    '<div class="section-title">📤 Formato de saída:</div>',
-    unsafe_allow_html=True
-)
-
-formato_saida = st.selectbox(
-    "Converter para:",
-    ["CSV", "JSON", "TXT", "XLSX"]
-)
-
-
-
-# Converter
-
-st.write("")
-
-converter = st.button(
-    "🔄 Converter arquivo",
-    use_container_width=True
-)
-
-
-if converter:
-
-    if arquivo is None:
-
-        st.warning(
-            "⚠️ Selecione um arquivo antes de converter."
-        )
-
-    else:
-
-        with st.spinner("Convertendo arquivo..."):
-
-            try:
-
-                response = requests.post(
-                    "http://127.0.0.1:8000/convert",
-                    files={
-                        "file": (
-                            arquivo.name,
-                            arquivo.getvalue()
-                        )
-                    },
-                    data={
-                        "target_format": formato_saida.lower()
-                    },
-                    timeout=30,
-                )
-
-
-                
-                # Sucesso!
-        
-
-                if response.status_code == 200:
-
-                    st.success(
-                        "✅ Arquivo convertido com sucesso!"
-                    )
-
-                    nome_original = arquivo.name.rsplit(
-                        ".", 1
-                    )[0]
-
-                    nome_download = (
-                        f"{nome_original}."
-                        f"{formato_saida.lower()}"
-                    )
-
-
-                   
-                    # Download
-                    
-
-                    st.download_button(
-                        label="⬇️ Baixar arquivo",
-                        data=response.content,
-                        file_name=nome_download,
-                        mime=response.headers.get(
-                            "content-type",
-                            "application/octet-stream"
-                        ),
-                        use_container_width=True
-                    )
-
-
-                
-                # ERRO da API!
-                
-
-                else:
-
-                    try:
-                        erro = response.json()["detail"]
-                    except Exception:
-                        erro = "Erro ao converter o arquivo."
-
-                    st.error(f"❌ {erro}")
-
-
-            except requests.exceptions.Timeout:
-                st.error(
-                    "❌ A API demorou mais de 30 segundos para responder."
-                )
-
-            except requests.exceptions.ConnectionError:
-
-                st.error(
-                    "❌ Não foi possível conectar à API."
-                )
-
-                st.info(
-                    "Verifique se o FastAPI está rodando "
-                    "em http://127.0.0.1:8000"
-                )
-
-            except requests.exceptions.RequestException as error:
-                st.error(f"❌ Erro na comunicação com a API: {error}")
+st.button("Converter", type="primary", use_container_width=True)
