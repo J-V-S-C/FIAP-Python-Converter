@@ -1,6 +1,26 @@
+import json
+
 import pytest
 
-from converters import process_file_conversion
+from converters import process_data_conversion, process_file_conversion
+
+
+def test_dict_para_json_retorna_json_valido():
+    payload = {"usuarios": [{"nome": "Ana", "idade": 30}, {"nome": "Bruno", "idade": 28}]}
+    output, media_type = process_data_conversion(payload, "json")
+
+    assert media_type == "application/json"
+    assert json.loads(output.getvalue().decode("utf-8")) == payload
+
+
+def test_dict_para_csv_retorna_colunas_e_dados():
+    output, media_type = process_data_conversion(
+        {"nome": "Ana", "idade": 30},
+        "csv",
+    )
+
+    assert media_type == "text/csv"
+    assert output.getvalue().decode("utf-8") == "nome,idade\nAna,30\n"
 
 
 def test_txt_preserva_linhas_sem_cabecalho():

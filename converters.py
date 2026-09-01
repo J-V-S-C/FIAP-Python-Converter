@@ -1,9 +1,11 @@
 import io
 import json
+from typing import Any, Callable
+
 import pandas as pd
-from typing import Callable
 
 
+# Lê um arquivo CSV e transforma em DataFrame para padronizar o processamento.
 def parse_csv(buffer: io.BytesIO) -> pd.DataFrame:
     try:
         return pd.read_csv(buffer, encoding="utf-8-sig")
@@ -17,15 +19,18 @@ def parse_csv(buffer: io.BytesIO) -> pd.DataFrame:
         raise ValueError(message) from error
 
 
+# Lê um arquivo JSON, valida o conteúdo e normaliza para DataFrame.
 def parse_json(buffer: io.BytesIO) -> pd.DataFrame:
     try:
         data = json.loads(buffer.getvalue().decode("utf-8-sig"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ValueError("O arquivo JSON é inválido ou possui uma codificação incompatível.") from error
 
+    # O JSON de entrada precisa ser um objeto ou uma lista, para manter o fluxo consistente.
     if not isinstance(data, (dict, list)):
         raise ValueError("O JSON deve conter um objeto ou uma lista de objetos.")
 
+    # Caso o JSON venha organizado em uma chave 'usuarios', a lógica trata esse caso específico.
     if isinstance(data, dict) and "usuarios" in data:
         if not isinstance(data["usuarios"], list):
             raise ValueError("O campo 'usuarios' deve ser uma lista.")
@@ -48,6 +53,9 @@ def parse_json(buffer: io.BytesIO) -> pd.DataFrame:
     return pd.json_normalize(data)
 
 
+
+
+# Converte texto simples em uma tabela com uma coluna única, mantendo cada linha como um registro.
 def parse_txt(buffer: io.BytesIO) -> pd.DataFrame:
     try:
         lines = [
@@ -60,13 +68,15 @@ def parse_txt(buffer: io.BytesIO) -> pd.DataFrame:
     return pd.DataFrame({"conteudo": lines})
 
 
+# Exporta um DataFrame para CSV em bytes, com linha final padronizada para ambiente Windows/Linux.
 def export_csv(df: pd.DataFrame) -> tuple[io.BytesIO, str]:
     buf = io.BytesIO()
-    df.to_csv(buf, index=False, encoding="utf-8")
+    df.to_csv(buf, index=False, encoding="utf-8", lineterminator="\n")
     buf.seek(0)
     return buf, "text/csv"
 
 
+# Exporta para JSON usando registros em formato orientado por linha.
 def export_json(df: pd.DataFrame) -> tuple[io.BytesIO, str]:
     buf = io.BytesIO()
     buf.write(df.to_json(orient="records", force_ascii=False, indent=4).encode("utf-8"))
@@ -74,6 +84,64 @@ def export_json(df: pd.DataFrame) -> tuple[io.BytesIO, str]:
     return buf, "application/json"
 
 
+# Converte um dicionário Python em DataFrame para reaproveitar a mesma lógica de exportação.
+def dict_to_dataframe(data: dict[str, Any]) -> pd.DataFrame:
+    if not isinstance(data, dict):
+        raise ValueError("A entrada deve ser um dicionário Python.")
+
+    if "usuarios" in data:
+        if not isinstance(data["usuarios"], list):
+            raise ValueError("O campo 'usuarios' deve ser uma lista.")
+
+        df = pd.json_normalize(data["usuarios"])
+
+        if "metadados" in data:
+            if not isinstance(data["metadados"], dict):
+                raise ValueError("O campo 'metadados' deve ser um objeto.")
+
+            for chave, valor in data["metadados"].items():
+                if not isinstance(valor, (dict, list)):
+                    df[f"meta_{chave}"] = valor
+
+        return df
+
+    return pd.json_normalize([data])
+
+
+# Exporta diretamente um dicionário em JSON, preservando a estrutura original.
+def export_data_json(data: dict[str, Any]) -> tuple[io.BytesIO, str]:
+    buf = io.BytesIO()
+    buf.write(json.dumps(data, ensure_ascii=False, indent=4).encode("utf-8"))
+    buf.seek(0)
+    return buf, "application/json"
+
+
+# Converte dicionário em CSV usando a conversão intermediária para DataFrame.
+def export_data_csv(data: dict[str, Any]) -> tuple[io.BytesIO, str]:
+    return export_csv(dict_to_dataframe(data))
+
+
+# Função pública para converter dicionário Python em outro formato sem depender de arquivo.
+def process_data_conversion(
+    data: dict[str, Any], target_format: str
+) -> tuple[io.BytesIO, str]:
+    if not isinstance(data, dict):
+        raise ValueError("A entrada deve ser um dicionário Python.")
+
+    target = target_format.lower().strip()
+    exporters = {
+        "csv": export_data_csv,
+        "json": export_data_json,
+    }
+
+    exporter = exporters.get(target)
+    if not exporter:
+        raise ValueError(f"Formato de saída não suportado: {target_format}")
+
+    return exporter(data)
+
+
+# Exporta um DataFrame em texto simples, usando tabulação entre colunas.
 def export_txt(df: pd.DataFrame) -> tuple[io.BytesIO, str]:
     buf = io.BytesIO()
     rows = df.fillna("").astype(str).apply("\t".join, axis=1)
@@ -82,12 +150,14 @@ def export_txt(df: pd.DataFrame) -> tuple[io.BytesIO, str]:
     return buf, "text/plain"
 
 
+# Mapeia extensão de arquivo para função de leitura.
 PARSERS: dict[str, Callable[[io.BytesIO], pd.DataFrame]] = {
     ".csv": parse_csv,
     ".json": parse_json,
     ".txt": parse_txt,
 }
 
+# Mapeia formato de destino para função de escrita.
 EXPORTERS: dict[str, Callable[[pd.DataFrame], tuple[io.BytesIO, str]]] = {
     "csv": export_csv,
     "json": export_json,
@@ -95,6 +165,7 @@ EXPORTERS: dict[str, Callable[[pd.DataFrame], tuple[io.BytesIO, str]]] = {
 }
 
 
+# Orquestra a leitura do arquivo, validação e exportação para o destino desejado.
 def process_file_conversion(
     file_bytes: bytes, file_ext: str, target_format: str
 ) -> tuple[io.BytesIO, str]:

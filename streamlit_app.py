@@ -2,10 +2,7 @@ import streamlit as st
 import requests
 
 
-
-# Configuração da pagina
-
-
+# Configuração da página inicial da interface Streamlit.
 st.set_page_config(
     page_title="File Converter",
     page_icon="🔄",
@@ -13,10 +10,7 @@ st.set_page_config(
 )
 
 
-
-# CSS gambiarra!
-
-
+# CSS para ajustar a aparência da interface e centralizar os elementos.
 st.markdown("""
 <style>
 
@@ -49,9 +43,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-
-# Titulo
-
+# Título principal da aplicação.
 st.markdown(
     '<div class="title">🔄 File Converter</div>',
     unsafe_allow_html=True
@@ -65,9 +57,7 @@ st.markdown(
 )
 
 
-
-# UPLOAD
-
+# Área para selecionar o arquivo a ser convertido.
 st.markdown(
     '<div class="section-title">📁 Arquivo:</div>',
     unsafe_allow_html=True
@@ -79,9 +69,7 @@ arquivo = st.file_uploader(
 )
 
 
-
-# Formato de saída
-
+# Seletor de formato de saída desejado.
 st.markdown(
     '<div class="section-title">📤 Formato de saída:</div>',
     unsafe_allow_html=True
@@ -93,9 +81,7 @@ formato_saida = st.selectbox(
 )
 
 
-
-# Converter
-
+# Botão que dispara a conversão.
 st.write("")
 
 converter = st.button(
@@ -104,20 +90,19 @@ converter = st.button(
 )
 
 
+# Fluxo principal de conversão.
 if converter:
 
     if arquivo is None:
-
+        # Valida se o usuário selecionou um arquivo antes de chamar a API.
         st.warning(
             "⚠️ Selecione um arquivo antes de converter."
         )
 
     else:
-
         with st.spinner("Convertendo arquivo..."):
-
             try:
-
+                # Faz a requisição para a API FastAPI com o arquivo e o formato de destino.
                 response = requests.post(
                     "http://127.0.0.1:8000/convert",
                     files={
@@ -132,13 +117,8 @@ if converter:
                     timeout=30,
                 )
 
-
-                
-                # Sucesso!
-        
-
+                # Caso a API responda com sucesso, exibe mensagem e botão de download.
                 if response.status_code == 200:
-
                     st.success(
                         "✅ Arquivo convertido com sucesso!"
                     )
@@ -152,11 +132,6 @@ if converter:
                         f"{formato_saida.lower()}"
                     )
 
-
-                   
-                    # Download
-                    
-
                     st.download_button(
                         label="⬇️ Baixar arquivo",
                         data=response.content,
@@ -168,13 +143,8 @@ if converter:
                         use_container_width=True
                     )
 
-
-                
-                # ERRO da API!
-                
-
+                # Se a API retornar erro, mostra a mensagem recebida.
                 else:
-
                     try:
                         erro = response.json()["detail"]
                     except Exception:
@@ -182,14 +152,14 @@ if converter:
 
                     st.error(f"❌ {erro}")
 
-
             except requests.exceptions.Timeout:
+                # API demorou demais para responder.
                 st.error(
                     "❌ A API demorou mais de 30 segundos para responder."
                 )
 
             except requests.exceptions.ConnectionError:
-
+                # Serviço da API está indisponível.
                 st.error(
                     "❌ Não foi possível conectar à API."
                 )
@@ -200,4 +170,5 @@ if converter:
                 )
 
             except requests.exceptions.RequestException as error:
+                # Falha genérica de comunicação com a API.
                 st.error(f"❌ Erro na comunicação com a API: {error}")
