@@ -1,7 +1,6 @@
 import io
 import json
-from typing import Any, Callable
-
+import zipfile
 import pandas as pd
 
 
@@ -66,6 +65,17 @@ def parse_txt(buffer: io.BytesIO) -> pd.DataFrame:
     except UnicodeDecodeError as error:
         raise ValueError("O arquivo TXT possui uma codificação incompatível.") from error
     return pd.DataFrame({"conteudo": lines})
+
+def parse_xlsx(buffer: io.BytesIO) -> pd.DataFrame:
+    try:
+        df = pd.read_excel(buffer, engine="openpyxl")
+    except ValueError as error:
+        raise ValueError("O arquivo XLSX possui um formato inválido.") from error
+    except zipfile.BadZipFile as error:
+        raise ValueError("O arquivo XLSX está corrompido ou não é um formato .xlsx válido.") from error
+    if df.empty:
+        raise ValueError("O arquivo XLSX está vazio.")
+    return df
 
 
 # Exporta um DataFrame para CSV em bytes, com linha final padronizada para ambiente Windows/Linux.
@@ -149,12 +159,18 @@ def export_txt(df: pd.DataFrame) -> tuple[io.BytesIO, str]:
     buf.seek(0)
     return buf, "text/plain"
 
+def export_xlsx(df: pd.DataFrame) -> tuple[io.BytesIO, str]:
+    buf = io.BytesIO()
+    df.to_excel(buf, index=False, engine="openpyxl")
+    buf.seek(0)
+    return buf,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 
 # Mapeia extensão de arquivo para função de leitura.
 PARSERS: dict[str, Callable[[io.BytesIO], pd.DataFrame]] = {
     ".csv": parse_csv,
     ".json": parse_json,
     ".txt": parse_txt,
+    ".xlsx": parse_xlsx,
 }
 
 # Mapeia formato de destino para função de escrita.
@@ -162,6 +178,7 @@ EXPORTERS: dict[str, Callable[[pd.DataFrame], tuple[io.BytesIO, str]]] = {
     "csv": export_csv,
     "json": export_json,
     "txt": export_txt,
+    "xlsx": export_xlsx,
 }
 
 
