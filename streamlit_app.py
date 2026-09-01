@@ -59,7 +59,7 @@ st.markdown(
 
 st.markdown(
     '<div class="subtitle">'
-    'Converta seus arquivos entre JSON, CSV e TXT'
+    'Converta seus arquivos entre JSON, CSV, TXT e XLSX'
     '</div>',
     unsafe_allow_html=True
 )
@@ -75,7 +75,7 @@ st.markdown(
 
 arquivo = st.file_uploader(
     "Selecione o arquivo que deseja converter",
-    type=["json", "csv", "txt"]
+    type=["json", "csv", "txt", "xlsx"]
 )
 
 
@@ -89,7 +89,7 @@ st.markdown(
 
 formato_saida = st.selectbox(
     "Converter para:",
-    ["CSV", "JSON", "TXT"]
+    ["CSV", "JSON", "TXT", "XLSX"]
 )
 
 
